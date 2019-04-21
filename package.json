@@ -1,0 +1,39 @@
+{
+  "name": "aws-demo-app-2019-worker",
+  "version": "1.0.0",
+  "description": "The Worker Component of AWS Demo App 2019",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "start": "node dist/index.js",
+    "build": "babel src --out-dir dist",
+    "dev": "nodemon src/index.js --exec babel-node",
+    "lint": "eslint --fix src",
+    "audit": "snyk test",
+    "test": "mocha src/**/*.spec.js --require @babel/register"
+  },
+  "keywords": [],
+  "author": "Jessie Wei",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jessieweiyi/aws-demo-app-2019-worker.git"
+  },
+  "dependencies": {
+    "aws-sdk": "^2.437.0",
+    "bunyan": "^1.8.12",
+    "dotenv": "^6.2.0"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.4.3",
+    "@babel/core": "^7.4.3",
+    "@babel/node": "^7.2.2",
+    "@babel/preset-env": "^7.4.3",
+    "eslint": "^5.12.0",
+    "eslint-config-airbnb-base": "^13.1.0",
+    "eslint-plugin-import": "^2.14.0",
+    "mocha": "^5.2.0",
+    "nodemon": "^1.18.9",
+    "snyk": "^1.120.1",
+    "supertest": "^3.3.0"
+  }
+}
