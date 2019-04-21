@@ -1,1 +1,4 @@
-console.log('Hello world!');
+import AWSDemoAppWorker from './awsDemoAppWorker.js';
+
+new AWSDemoAppWorker().start();
+
