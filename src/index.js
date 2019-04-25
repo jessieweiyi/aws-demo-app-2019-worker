@@ -1,4 +1,3 @@
-import AWSDemoAppWorker from './awsDemoAppWorker.js';
+import AWSDemoAppWorker from './awsDemoAppWorker';
 
 new AWSDemoAppWorker().start();
-
