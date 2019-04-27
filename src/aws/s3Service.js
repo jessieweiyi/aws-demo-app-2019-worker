@@ -52,7 +52,8 @@ export default class S3Service {
         Bucket: self.config.bucketName,
         Key: objectKey,
         Body: fileContent,
-        ContentLength: fileContent.length
+        ContentLength: fileContent.length,
+        ACL: 'public-read'
       }, (err) => {
         if (err) {
           reject(err);
