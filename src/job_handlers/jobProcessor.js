@@ -28,7 +28,7 @@ export default class JobProcessor {
         .then(destFilePath => this.s3Service.uploadObject(destFilePath,
           jobFileDetails.destObjectKey))
         .then(url => this.dbService.updateJob({
-          job: job.jobId,
+          jobId: job.jobId,
           url
         }))
         .then(() => this.sqsService.commitJob(job.receiptHandle))

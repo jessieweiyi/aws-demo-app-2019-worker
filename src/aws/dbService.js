@@ -6,29 +6,34 @@ export default class DBService {
   constructor(AWS, dbConfig) {
     this.config = dbConfig;
     this.dynamoDB = new AWS.DynamoDB({
-      endpoint: this.config.endpoint
+      endpoint: this.config.endpoint,
+      apiVersion: '2012-08-10'
     });
   }
 
   updateJob(job) {
-    const params = {
-      TableName: this.config.tableName,
+    var params = {
+      ExpressionAttributeNames: {
+        "#S": "status",
+        "#U": "url"
+      }, 
+      ExpressionAttributeValues: {
+        ":s": {
+          "S": "completed"
+        },
+        ":u": {
+          "S": job.url
+        }
+      }, 
       Key: {
         jobId: {
-          S: job.jobId
+          "S": job.jobId
         }
-      },
-      UpdateExpression: 'SET status= :s, set url= :u',
-      ExpressionAttributeValues: {
-        ':s': {
-          S: 'completed'
-        },
-        ':u': {
-          S: job.url
-        }
-      },
-      ReturnValues: 'ALL_NEW'
-    };
+      }, 
+      ReturnValues: "ALL_NEW", 
+      TableName: this.config.tableName, 
+      UpdateExpression: "SET #S=:s, #U=:u"
+     };
     return new Promise((resolve, reject) => {
       this.dynamoDB.updateItem(params, (error, data) => {
         if (error) {
