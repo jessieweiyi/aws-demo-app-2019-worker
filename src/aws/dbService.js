@@ -12,28 +12,28 @@ export default class DBService {
   }
 
   updateJob(job) {
-    var params = {
+    const params = {
       ExpressionAttributeNames: {
-        "#S": "status",
-        "#U": "url"
-      }, 
+        '#S': 'status',
+        '#U': 'url'
+      },
       ExpressionAttributeValues: {
-        ":s": {
-          "S": "completed"
+        ':s': {
+          S: 'completed'
         },
-        ":u": {
-          "S": job.url
+        ':u': {
+          S: job.url
         }
-      }, 
+      },
       Key: {
         jobId: {
-          "S": job.jobId
+          S: job.jobId
         }
-      }, 
-      ReturnValues: "ALL_NEW", 
-      TableName: this.config.tableName, 
-      UpdateExpression: "SET #S=:s, #U=:u"
-     };
+      },
+      ReturnValues: 'ALL_NEW',
+      TableName: this.config.tableName,
+      UpdateExpression: 'SET #S=:s, #U=:u'
+    };
     return new Promise((resolve, reject) => {
       this.dynamoDB.updateItem(params, (error, data) => {
         if (error) {

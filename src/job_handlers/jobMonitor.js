@@ -5,6 +5,7 @@ const logger = Logger.logger('JobMonitor');
 export default class JobMonitor {
   constructor(commonConfig, sqsService, jobProcessor) {
     this.checkInterval = commonConfig.checkInterval;
+    this.maxNumCheckError = commonConfig.maxNumCheckError;
     this.sqsService = sqsService;
     this.jobProcessor = jobProcessor;
     this.config = commonConfig;
@@ -14,25 +15,31 @@ export default class JobMonitor {
     this.startMonitor();
   }
 
-  startMonitor() {
+  startMonitor(countRetries = 0) {
     const self = this;
     setTimeout(() => {
+      logger.debug('Checking for new job');
       self.checkForNewJob()
         .then(() => {
           self.startMonitor();
         }).catch((err) => {
           logger.error(err);
-          self.startMonitor();
+          if (countRetries >= self.maxNumCheckError) {
+            logger.fatal('Maximum Retires Reached. Process Exit');
+            process.exit(1);
+          }
+
+          logger.info(`Retrying ${countRetries + 1} of ${self.maxNumCheckError} in ${((2 ** (countRetries + 1)) * self.checkInterval) / 1000} seconds`);
+          self.startMonitor(countRetries + 1);
         });
-    }, self.checkInterval);
+    }, (2 ** countRetries) * self.checkInterval);
   }
 
   checkForNewJob() {
-    const self = this;
-    return self.sqsService.getNextJobIfExists().then((job) => {
+    return this.sqsService.getNextJobIfExists().then((job) => {
       if (job) {
         logger.info('Received new job', job);
-        return self.jobProcessor.process(job);
+        return this.jobProcessor.process(job);
       }
 
       return null;

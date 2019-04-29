@@ -9,14 +9,13 @@ export default class SQSService {
   }
 
   getNextJobIfExists() {
-    const self = this;
     const params = {
       QueueUrl: this.config.queueUrl,
       VisibilityTimeout: this.config.visibilityTimeout
     };
 
     return new Promise((resolve, reject) => {
-      self.sqs.receiveMessage(params, (err, data) => {
+      this.sqs.receiveMessage(params, (err, data) => {
         if (err) {
           logger.error(err);
           reject(err);

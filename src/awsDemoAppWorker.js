@@ -8,7 +8,8 @@ require('dotenv').config();
 export default class AWSDemoAppWorker {
   constructor() {
     const config = {
-      checkInterval: process.env.CHECK_INTERVAL,
+      checkInterval: process.env.CHECK_INTERVAL || 1000,
+      maxNumCheckError: process.env.MAX_NUM_CHECK_ERROR || 10,
       tempFileFolder: process.env.TEMP_FILE_FOLDER
     };
     const imageFilter = new WarholFilter(config);
