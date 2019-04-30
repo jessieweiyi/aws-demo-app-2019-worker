@@ -1,3 +1,4 @@
+import Jimp from 'jimp';
 import Filter from './filter';
 
 const COLOUR_1 = [{ r: 255, g: 0, b: 128 },
@@ -21,14 +22,45 @@ export default class WarholFilter extends Filter {
   constructor(config) {
     super(config);
     this.colorPlatettes = [];
-  }
-
-  process(image) {
     this.colorPlatettes.push(WarholFilter.getOrderedColorPlatette(COLOUR_1));
     this.colorPlatettes.push(WarholFilter.getOrderedColorPlatette(COLOUR_2));
     this.colorPlatettes.push(WarholFilter.getOrderedColorPlatette(COLOUR_3));
     this.colorPlatettes.push(WarholFilter.getOrderedColorPlatette(COLOUR_4));
-    return image;
+  }
+
+  process(image) {
+    return new Promise((resolve, reject) => {
+      const { width, height } = image.bitmap;
+      // eslint-disable-next-line no-new
+      new Jimp (width * 2, height * 2, (createError, destImage) => {
+        if (createError) {
+          reject(createError);
+        }
+        try {
+          this.renderImage(image, destImage, width, height);
+        } catch (renderError) {
+          reject(renderError);
+        }
+        resolve(destImage);
+      });
+    });
+  }
+
+  renderImage(image, destImage, width, height) {
+    const sourceImageDetails = WarholFilter.getSourceImageColorDetails(image);
+    this.colorPlatettes.forEach((colorPlatette, index) => {
+      const clusters = WarholFilter.calculateClusters(sourceImageDetails.minBrightness,
+        sourceImageDetails.maxBrightness,
+        colorPlatette.length);
+
+      sourceImageDetails.pixels.forEach((pixel) => {
+        const outputColor = WarholFilter.getOutputColor(pixel, clusters, colorPlatette);
+        const xLoc = pixel.x + (width * Math.floor(index / 2));
+        const yLoc = pixel.y + (height * (index % 2));
+        const hex = Jimp.rgbaToInt(outputColor.r, outputColor.g, outputColor.b, 255);
+        destImage.setPixelColor(hex, xLoc, yLoc);
+      });
+    });
   }
 
   static getOutputColor(color, clusters, colorPlatette) {
@@ -51,22 +83,22 @@ export default class WarholFilter extends Filter {
     return output;
   }
 
-  static getSourceImageColorDetails(bitmap) {
+  static getSourceImageColorDetails(image) {
     const output = {};
     output.pixels = [];
 
-    const { width } = bitmap;
-    const { height } = bitmap;
+    const { width, height } = image.bitmap;
 
     let min = WarholFilter.computeBrightness({ r: 255, g: 255, b: 255 });
     let max = 0;
 
     for (let xIndex = 0; xIndex < width; xIndex += 1) {
       for (let yIndex = 0; yIndex < height; yIndex += 1) {
-        const pixel = bitmap.getPixel(xIndex, yIndex);
-        const brightness = WarholFilter.computeBrightness(pixel);
+        const pixel = image.getPixelColor(xIndex, yIndex);
+        const color = Jimp.intToRGBA(pixel);
+        const brightness = WarholFilter.computeBrightness(color);
         output.pixels.push({
-          x: xIndex, y: yIndex, color: pixel, brightness
+          x: xIndex, y: yIndex, color, brightness
         });
         if (brightness > max) {
           max = brightness;
