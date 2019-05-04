@@ -52,8 +52,8 @@ Resources:
           Memory: !Ref 'ContainerMemory'
           Image: !Ref 'ImageURL'
           HealthCheck: 
-            Command: [ "CMD-SHELL", "ps || /usr/local/bin/node -r dotenv/config dist/index.js -it || exit 1" ]
-            Interval: 60
+            Command: [ "CMD-SHELL", "ps cax | grep [/]usr/local/bin/node || exit 1" ]
+            Interval: 30
             Timeout: 5
             Retries: 3
             StartPeriod: 10
@@ -77,20 +77,22 @@ Resources:
         Fn::ImportValue:
           !Join [':', [!Ref 'ClusterStackName', 'ClusterName']]
       LaunchType: FARGATE
+      PlatformVersion: 'LATEST'
       DeploymentConfiguration:
         MaximumPercent: 200
         MinimumHealthyPercent: 75
       DesiredCount: !Ref 'DesiredCount'
       NetworkConfiguration:
         AwsvpcConfiguration:
+          AssignPublicIp: 'DISABLED'
           SecurityGroups:
             - Fn::ImportValue:
                 !Join [':', [!Ref 'ClusterStackName', 'ContainerSecurityGroup']]
           Subnets:
             - Fn::ImportValue:
-                !Join [':', [!Ref 'NetworkStackName', 'PrivateSubnetOne']]
+                !Join [':', [!Ref 'NetworkStackName', 'PublicSubnetOne']]
             - Fn::ImportValue:
-                !Join [':', [!Ref 'NetworkStackName', 'PrivateSubnetTwo']]
+                !Join [':', [!Ref 'NetworkStackName', 'PublicSubnetTwo']]
       TaskDefinition: !Ref 'TaskDefinition'
   TaskRole:
     Type: AWS::IAM::Role
@@ -115,6 +117,10 @@ Resources:
                 Resource:
                   - Fn::ImportValue: 
                       !Join [':', [!Ref 'AWSServicesStackName', 'S3BucketARN']]
+                  - Fn::Join:
+                    - ""
+                    - - Fn::ImportValue: !Join [':', [!Ref 'AWSServicesStackName', 'S3BucketARN']]
+                      - "/*"
               -
                 Effect: Allow
                 Action:

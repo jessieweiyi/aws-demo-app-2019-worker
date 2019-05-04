@@ -49,13 +49,13 @@ write-image-definitions:
 
 PROVISION_PARAMETERS_STACK_ENV := --stack-name $(STACK_NAME_ENV_WORKER) \
 		--template-body file://$(FOLDER_CF_TEMPLATES)/$(FILE_CF_TEMPLATE_ENV_WORKER) \
-		--parameters ParameterKey=Environment,ParameterValue=$(ENVIRONMENT) \ 
+		--parameters ParameterKey=Environment,ParameterValue=$(ENVIRONMENT) \
 			ParameterKey=NetworkStackName,ParameterValue=$(NETWORK_STACK_NAME) \
 			ParameterKey=ClusterStackName,ParameterValue=$(CLUSTER_STACK_NAME) \
 			ParameterKey=AWSServicesStackName,ParameterValue=$(AWS_SERVICES_STACK_NAME) \
 			ParameterKey=ServiceName,ParameterValue=$(SERVICE_NAME) \
 			ParameterKey=ImageURL,ParameterValue=$(IMAGE_URL) \
-		--capabilities CAPABILITY_NAMED_IAM \
+		--capabilities CAPABILITY_IAM \
 		--region $(AWS_REGION)
 
 .PHONY: create-env-worker
