@@ -4,6 +4,9 @@ module.exports = {
         "node": true,
         "mocha": true
     },
+    "globals": {
+        "assert": true
+    },
     rules: {
         'comma-dangle': 0,
         'no-underscore-dangle': 0,

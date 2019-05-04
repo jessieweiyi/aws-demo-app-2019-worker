@@ -11,6 +11,7 @@ export default class S3Service {
       connConfig.endpoint = this.config.endpoint;
     }
     connConfig.s3ForcePathStyle = this.config.s3ForcePathStyle;
+    connConfig.apiVersion = '2006-03-01';
 
     this.s3 = new AWS.S3(connConfig);
   }

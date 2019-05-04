@@ -32,7 +32,7 @@ export default class WarholFilter extends Filter {
     return new Promise((resolve, reject) => {
       const { width, height } = image.bitmap;
       // eslint-disable-next-line no-new
-      new Jimp (width * 2, height * 2, (createError, destImage) => {
+      new Jimp(width * 2, height * 2, (createError, destImage) => {
         if (createError) {
           reject(createError);
         }

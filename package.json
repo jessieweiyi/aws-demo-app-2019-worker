@@ -7,10 +7,10 @@
   "scripts": {
     "start": "node -r dotenv/config dist/index.js",
     "build": "babel src --out-dir dist",
-    "dev": "nodemon src/index.js --exec babel-node",
+    "dev": "AWS_ACCESS_KEY_ID=your_access_key_id AWS_SECRET_ACCESS_KEY=your_secret_access_key nodemon src/index.js --exec babel-node",
     "lint": "eslint --fix src",
     "audit": "snyk test",
-    "test": "mocha src/**/*.spec.js --require @babel/register"
+    "test": "AWS_ACCESS_KEY_ID=your_access_key_id AWS_SECRET_ACCESS_KEY=your_secret_access_key mocha src/**/*.spec.js --require @babel/register"
   },
   "keywords": [],
   "author": "Jessie Wei",
@@ -29,10 +29,13 @@
     "@babel/core": "^7.4.3",
     "@babel/node": "^7.2.2",
     "@babel/preset-env": "^7.4.3",
+    "aws-sdk-mock": "^4.4.0",
+    "chai": "^4.2.0",
     "eslint": "^5.12.0",
     "eslint-config-airbnb-base": "^13.1.0",
     "eslint-plugin-import": "^2.14.0",
     "mocha": "^5.2.0",
+    "mock-fs": "^4.9.0",
     "nodemon": "^1.18.9",
     "snyk": "^1.120.1",
     "supertest": "^3.3.0"

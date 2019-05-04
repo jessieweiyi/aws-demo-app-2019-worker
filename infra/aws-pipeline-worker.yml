@@ -1,0 +1,11 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: The CodeDeploy Pipeline with Artifact Store and ECR Repository
+Parameters: 
+  ECRRepositoryName:
+    Type: String
+    Description: "The Name of ECR Repository"
+Resources: 
+  ECRRepository:
+    Type: AWS::ECR::Repository
+    Properties: 
+      RepositoryName: !Ref 'ECRRepositoryName'

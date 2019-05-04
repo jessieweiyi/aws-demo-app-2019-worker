@@ -1,0 +1,133 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: The Worker service deployed on AWS ECS Fargate, hosted in a private subnet.
+Parameters:
+  Environment:
+    Type: String
+    Description: "The deployment environment: dev, prod"
+  NetworkStackName:
+    Type: String
+    Description: "The name of the Network stack"
+  ClusterStackName:
+    Type: String
+    Description: "The name of the ECS Fargate cluster stack"
+  AWSServicesStackName: 
+    Type: String
+    Description: "The name of the AWS services stack"
+  ServiceName:
+    Type: String
+    Default: nginx
+    Description: A name for the service
+  ImageURL:
+    Type: String
+    Description: The url of a docker image
+  ContainerCpu:
+    Type: Number
+    Default: 512
+    Description: How much CPU to give the container. 1024 is 1 CPU
+  ContainerMemory:
+    Type: Number
+    Default: 1024
+    Description: How much memory in megabytes to give the container
+  DesiredCount:
+    Type: Number
+    Default: 1
+    Description: How many copies of the service task to run
+Resources:
+  TaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: !Ref 'ServiceName'
+      Cpu: !Ref 'ContainerCpu'
+      Memory: !Ref 'ContainerMemory'
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+      ExecutionRoleArn:
+        Fn::ImportValue:
+          !Join [':', [!Ref 'ClusterStackName', 'ECSTaskExecutionRole']]
+      TaskRoleArn: !Ref TaskRole
+      ContainerDefinitions:
+        - Name: !Ref 'ServiceName'
+          Cpu: !Ref 'ContainerCpu'
+          Memory: !Ref 'ContainerMemory'
+          Image: !Ref 'ImageURL'
+          HealthCheck: 
+            Command: [ "CMD-SHELL", "ps || /usr/local/bin/node -r dotenv/config dist/index.js -it || exit 1" ]
+            Interval: 60
+            Timeout: 5
+            Retries: 3
+            StartPeriod: 10
+          Environment:
+            -
+              Name: DOTENV_CONFIG_PATH
+              Value: !Join ['.', ['/opt/app/.env', !Ref 'Environment']]
+          LogConfiguration:
+            LogDriver: "awslogs"
+            Options:
+              awslogs-group: 
+                Fn::ImportValue:
+                  !Join [':', [!Ref 'ClusterStackName', 'CloudwatchLogsGroup']]
+              awslogs-region: !Ref AWS::Region
+              awslogs-stream-prefix: !Ref ServiceName
+  Service:
+    Type: AWS::ECS::Service
+    Properties:
+      ServiceName: !Ref 'ServiceName'
+      Cluster:
+        Fn::ImportValue:
+          !Join [':', [!Ref 'ClusterStackName', 'ClusterName']]
+      LaunchType: FARGATE
+      DeploymentConfiguration:
+        MaximumPercent: 200
+        MinimumHealthyPercent: 75
+      DesiredCount: !Ref 'DesiredCount'
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          SecurityGroups:
+            - Fn::ImportValue:
+                !Join [':', [!Ref 'ClusterStackName', 'ContainerSecurityGroup']]
+          Subnets:
+            - Fn::ImportValue:
+                !Join [':', [!Ref 'NetworkStackName', 'PrivateSubnetOne']]
+            - Fn::ImportValue:
+                !Join [':', [!Ref 'NetworkStackName', 'PrivateSubnetTwo']]
+      TaskDefinition: !Ref 'TaskDefinition'
+  TaskRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Ref 'ServiceName'
+      AssumeRolePolicyDocument:
+        Statement:
+        - 
+          Effect: Allow
+          Principal:
+            Service: [ecs-tasks.amazonaws.com]
+          Action: ['sts:AssumeRole']
+      Path: /
+      Policies:
+        - PolicyName: TaskRolePolice
+          PolicyDocument:
+            Statement:
+              -
+                Effect: Allow
+                Action:
+                  - s3:*
+                Resource:
+                  - Fn::ImportValue: 
+                      !Join [':', [!Ref 'AWSServicesStackName', 'S3BucketARN']]
+              -
+                Effect: Allow
+                Action:
+                  - sqs:SendMessage
+                Resource: 
+                  Fn::ImportValue: 
+                    !Join [':', [!Ref 'AWSServicesStackName', 'SQSQueueARN']]
+              -
+                Effect: Allow
+                Action:
+                  - dynamodb:DescribeTable
+                  - dynamodb:Query
+                  - dynamodb:PutItem
+                Resource: 
+                  Fn::ImportValue: 
+                    !Join [':', [!Ref 'AWSServicesStackName', 'DynamoDBTableARN']]
