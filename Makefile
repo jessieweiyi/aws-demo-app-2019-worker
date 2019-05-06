@@ -45,7 +45,7 @@ publish:
 .PHONY: write-image-definitions
 write-image-definitions:
 	@echo Writing image definitions file...
-	printf '[{"name":"%s","imageUri":"%s"}]' $(SERVICE_NAME) $(IMAGE_URL) > imagedefinitions.json
+	printf '[{"name":"%s","imageUri":"%s"}]' $(PROJECT) $(IMAGE_URL) > imagedefinitions.json
 
 PROVISION_PARAMETERS_STACK_ENV := --stack-name $(STACK_NAME_ENV_WORKER) \
 		--template-body file://$(FOLDER_CF_TEMPLATES)/$(FILE_CF_TEMPLATE_ENV_WORKER) \
@@ -54,8 +54,9 @@ PROVISION_PARAMETERS_STACK_ENV := --stack-name $(STACK_NAME_ENV_WORKER) \
 			ParameterKey=ClusterStackName,ParameterValue=$(CLUSTER_STACK_NAME) \
 			ParameterKey=AWSServicesStackName,ParameterValue=$(AWS_SERVICES_STACK_NAME) \
 			ParameterKey=ServiceName,ParameterValue=$(SERVICE_NAME) \
+			ParameterKey=ProjectName,ParameterValue=$(PROJECT) \
 			ParameterKey=ImageURL,ParameterValue=$(IMAGE_URL) \
-		--capabilities CAPABILITY_IAM \
+		--capabilities CAPABILITY_NAMED_IAM \
 		--region $(AWS_REGION)
 
 .PHONY: create-env-worker

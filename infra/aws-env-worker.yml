@@ -17,6 +17,10 @@ Parameters:
     Type: String
     Default: nginx
     Description: A name for the service
+  ProjectName:
+    Type: String
+    Default: nginx
+    Description: A name for the project
   ImageURL:
     Type: String
     Description: The url of a docker image
@@ -47,7 +51,7 @@ Resources:
           !Join [':', [!Ref 'ClusterStackName', 'ECSTaskExecutionRole']]
       TaskRoleArn: !Ref TaskRole
       ContainerDefinitions:
-        - Name: !Ref 'ServiceName'
+        - Name: !Ref 'ProjectName'
           Cpu: !Ref 'ContainerCpu'
           Memory: !Ref 'ContainerMemory'
           Image: !Ref 'ImageURL'
@@ -84,7 +88,7 @@ Resources:
       DesiredCount: !Ref 'DesiredCount'
       NetworkConfiguration:
         AwsvpcConfiguration:
-          AssignPublicIp: 'DISABLED'
+          AssignPublicIp: ENABLED
           SecurityGroups:
             - Fn::ImportValue:
                 !Join [':', [!Ref 'ClusterStackName', 'ContainerSecurityGroup']]
@@ -124,7 +128,7 @@ Resources:
               -
                 Effect: Allow
                 Action:
-                  - sqs:SendMessage
+                  - sqs:ReceiveMessage
                 Resource: 
                   Fn::ImportValue: 
                     !Join [':', [!Ref 'AWSServicesStackName', 'SQSQueueARN']]
@@ -132,8 +136,7 @@ Resources:
                 Effect: Allow
                 Action:
                   - dynamodb:DescribeTable
-                  - dynamodb:Query
-                  - dynamodb:PutItem
+                  - dynamodb:UpdateItem
                 Resource: 
                   Fn::ImportValue: 
                     !Join [':', [!Ref 'AWSServicesStackName', 'DynamoDBTableARN']]

@@ -32,5 +32,5 @@ COPY ./.env.* /opt/app/
 RUN chown $user -R /opt/app
 USER $user
 
-EXPOSE 5000
-ENTRYPOINT ["yarn", "start"]
+ENTRYPOINT ["yarn"]
+CMD ["start"]
